@@ -9,6 +9,7 @@ jobs:
         echo "Hellow World"  
 
   say-goodbye:
+    runs-on: ubuntu-latest
     steps:
       name: "Failed step"
       run: |
