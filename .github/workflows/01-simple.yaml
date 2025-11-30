@@ -1,14 +1,7 @@
 name: "01 - Building Blocks"
 on:
+  push:
   workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch name'
-        required: true
-        default: 'main'
-        type: choice
-        options:
-        - main
 
 jobs:
   echo-hello:
