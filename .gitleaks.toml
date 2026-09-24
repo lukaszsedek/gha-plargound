@@ -1,0 +1,70 @@
+# .gitleaks.toml
+# Place in the repository root. gitleaks and gitleaks-action pick it up automatically.
+# Docs: https://github.com/gitleaks/gitleaks#configuration
+
+title = "Gitleaks config"
+
+# Keep all ~200 built-in rules (AWS, GitHub, Slack, Stripe, private keys, JWT, ...)
+[extend]
+useDefault = true
+# Disable noisy built-in rules by ID if needed, e.g.:
+# disabledRules = ["generic-api-key"]
+
+# ---------------------------------------------------------------------------
+# Global allowlist - applies to every rule
+# ---------------------------------------------------------------------------
+[allowlist]
+description = "Global allowlist: test data, generated files, placeholders"
+
+# Files/directories that never contain real secrets
+paths = [
+  '''(^|/)\.gitleaks\.toml$''',
+  '''(^|/)\.gitleaksignore$''',
+  '''(^|/)(test|tests|__tests__|spec)/fixtures/''',
+  '''(^|/)testdata/''',
+  '''(^|/)(node_modules|vendor|dist|build)/''',
+  '''(^|/)(package-lock\.json|yarn\.lock|pnpm-lock\.yaml|poetry\.lock|go\.sum|Cargo\.lock)$''',
+  '''\.(png|jpe?g|gif|svg|ico|pdf|woff2?|ttf|eot|mp4|zip|gz)$''',
+  '''\.min\.(js|css)$''',
+]
+
+# Obvious placeholder values (matched against the detected secret)
+regexTarget = "match"
+regexes = [
+  '''(?i)(example|sample|dummy|placeholder|changeme|your[_-]?(api[_-]?)?key|xxx+|<[^>]+>)''',
+  '''\$\{\{?\s*[A-Za-z0-9_.]+\s*\}?\}''',   # ${VAR} / ${{ secrets.X }} references
+]
+
+# Words that, if present in the secret, mark it as a false positive
+stopwords = [
+  "example",
+  "dummy",
+  "placeholder",
+  "changeme",
+  "notasecret",
+]
+
+# Specific commits already reviewed and cleared (full SHA)
+# commits = ["<sha>"]
+
+# ---------------------------------------------------------------------------
+# Custom rules for internal secrets (optional - adjust or remove)
+# ---------------------------------------------------------------------------
+
+# Example: internal service tokens like "acme_live_<32 alnum chars>"
+# [[rules]]
+# id = "internal-service-token"
+# description = "Internal service token"
+# regex = '''\b(acme_(live|test)_[A-Za-z0-9]{32})\b'''
+# secretGroup = 1
+# keywords = ["acme_live_", "acme_test_"]
+# tags = ["internal"]
+
+# Connection strings with embedded credentials (postgres, mysql, mongodb, redis, amqp)
+[[rules]]
+id = "connection-string-with-password"
+description = "Database/broker connection string containing a password"
+regex = '''(?i)\b(?:postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|redis|rediss|amqps?)://[^:\s/@]+:([^@\s/]{6,})@[^\s'"]+'''
+secretGroup = 1
+keywords = ["postgres", "mysql", "mariadb", "mongodb", "redis", "amqp"]
+tags = ["database"]
