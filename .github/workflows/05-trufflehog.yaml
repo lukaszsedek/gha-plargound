@@ -1,0 +1,26 @@
+name: trufflehog
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  trufflehog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so the action can diff base..head
+
+      - name: TruffleHog
+        uses: trufflesecurity/trufflehog@main   # pin to a release tag or SHA later
+        with:
+          # path, base, head are left out on purpose: the action detects
+          # the right commit range for pull_request and push events itself.
+          extra_args: --results=verified,unknown
+          # version: 3.x.y   # optional: pin the CLI version
