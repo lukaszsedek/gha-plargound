@@ -1,0 +1,33 @@
+name: checkov
+
+on:
+  push:
+    branches: ["**"]          # every push, any branch
+  pull_request:               # every PR: opened, new commits, reopened
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# cancel an older run on the same branch/PR when a newer commit arrives
+concurrency:
+  group: checkov-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checkov:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # on a PR, scan the PR's latest commit instead of GitHub's merge commit
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          output_format: cli
+          quiet: true
+          soft_fail: false
